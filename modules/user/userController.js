@@ -25,7 +25,7 @@ const edit = (req, res) => {
 };
 
 const getUserPost = (req, res) => {
-  res.send("success user");
+  res.send("success getUserPost");
 };
 
 module.exports = { register, edit, login, getUserPost };
