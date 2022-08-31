@@ -1,13 +1,16 @@
 const mongoose = require("mongoose");
 
-const commentPost = new mongoose.Schema({
-  user_id: {
+const commentPostSchema = new mongoose.Schema({
+  userId: {
     type: String,
   },
-  filePath: {
+  name: {
     type: String,
   },
-  description: {
+  postId: {
+    type: String,
+  },
+  comment: {
     type: String,
     default: "",
   },
@@ -16,4 +19,4 @@ const commentPost = new mongoose.Schema({
     default: new Date(),
   },
 });
-module.exports = mongoose.model("commentPost", commentPost);
+module.exports = mongoose.model("commentPost", commentPostSchema);
