@@ -1,10 +1,12 @@
 const model = require("../../models");
 const { hashPassword, comparePassword } = require("../../utils/bcrypt");
-const { createJWT } = require("../../utils/token");
+const { createJWT, verifyJWT } = require("../../utils/token");
 
 const register = async (data) => {
   data.password = await hashPassword(data.password);
-  const userRegResponse = await model.userSchema.create(data);
+  const userRegResponse = await model.userSchema
+    .create(data)
+    .select("name photo email contactNumber DOB");
   return userRegResponse;
 };
 
@@ -29,11 +31,42 @@ const login = async (data) => {
   }
 };
 
-const edit = () => {
-  res.send("success edit");
+const followUser = async (token, data) => {
+  decodedToken = verifyJWT(token);
+  const postData = { ...decodedToken, ...data };
+  const postCommentResponse = await model.userFollowerSchema.create(postData);
+  return postCommentResponse;
 };
 
-const getUserPost = () => {
-  res.send("success user");
+const edit = async (token, postData) => {
+  decodedToken = verifyJWT(token);
+  const filter = { _id: decodedToken.userId };
+  const update = postData;
+  const editResponse = await model.userSchema
+    .findOneAndUpdate(filter, update, { new: true })
+    .select("name photo email contactNumber DOB");
+  return editResponse;
 };
-module.exports = { register, edit, login, getUserPost };
+
+const getUser = async (token) => {
+  decodedToken = verifyJWT(token);
+  const userResponse = await model.userSchema
+    .find({
+      _id: decodedToken.userId,
+    })
+    .select("name email contactNumber DOB photo");
+
+  userResponse[0]._doc["followers"] = await model.userFollowerSchema
+    .find({ followerID: decodedToken.userId })
+    .select("name -_id");
+
+  let followerId = await model.userFollowerSchema
+    .find({ userId: decodedToken.userId })
+    .select("followerID -_id");
+
+  userResponse[0]._doc["following"] = await model.userSchema
+    .find({ _id: followerId[0].followerID })
+    .select("name -_id");
+  return userResponse;
+};
+module.exports = { register, edit, login, getUser, followUser };
