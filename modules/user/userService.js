@@ -4,9 +4,8 @@ const { createJWT, verifyJWT } = require("../../utils/token");
 
 const register = async (data) => {
   data.password = await hashPassword(data.password);
-  const userRegResponse = await model.userSchema
-    .create(data)
-    .select("name photo email contactNumber DOB");
+  const userRegResponse = await model.userSchema.create(data);
+  // .select("name photo email contactNumber DOB"); cannot use select with create object
   return userRegResponse;
 };
 
