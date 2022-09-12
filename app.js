@@ -4,11 +4,12 @@ require("dotenv").config();
 
 const express = require("express");
 const cors = require("cors");
-const conncetDB = require("./conncetDB/connectDB");
+const conncetDB = require("./utils/connectDB");
 const indexroute = require("./routes");
 const { errorHandler } = require("./middlewares/errorHandler");
 const app = express();
-
+const bodyParser = require("body-parser");
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cors());
 
@@ -16,7 +17,6 @@ app.use(indexroute);
 app.use(errorHandler);
 
 const port = process.env.PORT || 3000;
-
 conncetDB(process.env.MONGO_URL)
   .then(() => {
     console.log("DB connceted");

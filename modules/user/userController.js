@@ -14,29 +14,33 @@ const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
     const loginResponse = await userService.login({ email, password });
-    return successResponse(res, (data = { token: loginResponse }));
+    if (loginResponse) {
+      return successResponse(res, (data = { token: loginResponse }));
+    } else {
+      return successResponse(res, (data = "Invalid Login credentials"));
+    }
   } catch (err) {
     next(err);
   }
 };
 const followUser = async (req, res, next) => {
   try {
-    const token = req.user.userToken;
-    followerID = req.params.id;
-    const postData = { followerID };
-    const commentResponse = await userService.followUser(token, postData);
-    return successResponse(res, (data = { response: commentResponse }));
+    const userId = req.user.userId;
+    followingId = req.params.id;
+    const postData = { followingId };
+    const commentResponse = await userService.followUser(userId, postData);
+    return successResponse(res);
   } catch (error) {
     next(error);
   }
 };
 const edit = async (req, res, next) => {
   try {
-    const token = req.user.userToken;
+    const userId = req.user.userId;
     const photo = req.filePath.filePath;
     const postData = { ...req.body, photo };
-    const editResponse = await userService.edit(token, postData);
-    return successResponse(res, (data = { response: editResponse }));
+    const editResponse = await userService.edit(userId, postData);
+    return successResponse(res);
   } catch (error) {
     next(error);
   }
@@ -44,12 +48,33 @@ const edit = async (req, res, next) => {
 
 const getUser = async (req, res, next) => {
   try {
-    const token = req.user.userToken;
-    const userGetResponse = await userService.getUser(token);
-    return successResponse(res, (data = { response: userGetResponse }));
+    const userId = req.user.userId;
+    const getUserResponse = await userService.getUser(userId);
+    return successResponse(res, (data = { response: getUserResponse }));
   } catch (error) {
     next(error);
   }
 };
-
-module.exports = { register, edit, login, getUser, followUser };
+const followers = async (req, res, next) => {
+  try {
+    const userId = req.user.userId;
+    const followersResponse = await userService.followers(userId);
+    return successResponse(res, (data = { response: followersResponse }));
+  } catch (error) {}
+};
+const following = async (req, res, next) => {
+  try {
+    const userId = req.user.userId;
+    const followersResponse = await userService.following(userId);
+    return successResponse(res, (data = { response: followersResponse }));
+  } catch (error) {}
+};
+module.exports = {
+  register,
+  edit,
+  login,
+  getUser,
+  followUser,
+  followers,
+  following,
+};
