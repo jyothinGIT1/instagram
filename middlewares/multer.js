@@ -1,5 +1,6 @@
+// need to create a public folder in the root folder
+
 const multer = require("multer");
-const { verifyJWT } = require("../utils/token");
 
 const multerStorage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -7,7 +8,7 @@ const multerStorage = multer.diskStorage({
   },
   filename: (req, file, cb) => {
     const ext = file.mimetype.split("/")[1];
-    let userId = verifyJWT(req.user.userToken).userId;
+    let userId = req.user.userId;
     req.filePath = {
       filePath: `/public/${`${userId}-${
         file.originalname

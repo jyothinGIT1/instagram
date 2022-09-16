@@ -13,7 +13,7 @@ const createPost = async (req, res, next) => {
 const commentPost = async (req, res, next) => {
   try {
     const userId = req.user.userId;
-    postId = req.params.id;
+    const postId = req.params.id;
     const postData = { ...req.body, postId };
     const commentResponse = await postService.commentPost(userId, postData);
     return successResponse(res);
@@ -24,7 +24,9 @@ const commentPost = async (req, res, next) => {
 const getPost = async (req, res, next) => {
   try {
     const userId = req.user.userId;
-    const getPostResponse = await postService.getPost(userId);
+    const query = req.query;
+
+    const getPostResponse = await postService.getPost(query, userId);
     return successResponse(res, (data = { response: getPostResponse }));
   } catch (error) {
     next(error);
@@ -41,4 +43,14 @@ const likePost = async (req, res, next) => {
     next(error);
   }
 };
-module.exports = { createPost, getPost, commentPost, likePost };
+const getComment = async (req, res, next) => {
+  try {
+    const query = req.query;
+    const postId = req.params.postId;
+    const getPostResponse = await postService.getComment(query, postId);
+    return successResponse(res, (data = { response: getPostResponse }));
+  } catch (error) {
+    next(error);
+  }
+};
+module.exports = { createPost, getPost, commentPost, likePost, getComment };

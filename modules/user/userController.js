@@ -37,6 +37,7 @@ const followUser = async (req, res, next) => {
 const edit = async (req, res, next) => {
   try {
     const userId = req.user.userId;
+    console.log(req.filePath);
     const photo = req.filePath.filePath;
     const postData = { ...req.body, photo };
     const editResponse = await userService.edit(userId, postData);
@@ -69,6 +70,7 @@ const following = async (req, res, next) => {
     return successResponse(res, (data = { response: followersResponse }));
   } catch (error) {}
 };
+
 module.exports = {
   register,
   edit,

@@ -7,7 +7,7 @@ const register = async (data) => {
   const { _id, name, email, photo, mobileNumber, DOB, createdOn } =
     await model.userSchema.create(data);
   return {
-    userID: _id,
+    userId: _id,
     name,
     email,
     photo,
@@ -41,8 +41,8 @@ const login = async (data) => {
 const followUser = async (userId, data) => {
   const postData = { followerId: userId, followingId: data.followingId };
   const postCommentResponse = await model.userFollowerSchema.create(postData);
-  let { followerId, followingId } = postCommentResponse._doc;
-  console.log({ followerId, followingId });
+  // let { followerId, followingId } = postCommentResponse._doc;
+  // console.log({ followerId, followingId });
   return 1;
 };
 
@@ -63,7 +63,7 @@ const getUser = async (userId) => {
     .find({
       _id: userId,
     })
-    .select("name email contactNumber DOB createdOn photo -_id");
+    .select("name email contactNumber DOB createdOn photo _id");
 
   let count = 0;
   try {
@@ -73,8 +73,7 @@ const getUser = async (userId) => {
   if (count) {
     userResponse[0]._doc["following"] = count;
   } else {
-    userResponse[0]._doc["following"] =
-      "You are not following anyone ,start following and build network";
+    userResponse[0]._doc["following"] = 0;
   }
 
   try {
@@ -103,55 +102,23 @@ const getUser = async (userId) => {
 const followers = async (userId) => {
   const follower = await model.userFollowerSchema
     .find({ followingId: userId })
-    .select("followerId -_id");
-
-  let followerList = [];
-  follower.forEach((element) => {
-    followerList.push(element.followerId);
-  });
-  const response = await model.userSchema
-    .find({
-      _id: {
-        $in: followerList,
-      },
-    })
-    .select("name _id");
-  followerList = [];
-  response.forEach((element) => {
-    followerList.push({ followerId: element["_id"], name: element["name"] });
-  });
-
+    .select("followerId -_id")
+    .populate("followerId", "userId name");
   if (follower.length === 0) {
     return 0;
   }
-  return followerList;
+  return follower;
 };
 
 const following = async (userId) => {
   const followings = await model.userFollowerSchema
     .find({ followerId: userId })
-    .select("followingId -_id");
-
-  let followingList = [];
-  followings.forEach((element) => {
-    followingList.push(element.followingId);
-  });
-  const response = await model.userSchema
-    .find({
-      _id: {
-        $in: followingList,
-      },
-    })
-    .select("name _id");
-  followingList = [];
-  response.forEach((element) => {
-    followingList.push({ followingId: element["_id"], name: element["name"] });
-  });
-
+    .select("followingId -_id")
+    .populate("followingId", "userId name");
   if (followings.length === 0) {
     return 0;
   }
-  return followingList;
+  return followings;
 };
 module.exports = {
   register,

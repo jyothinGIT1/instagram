@@ -10,6 +10,7 @@ const {
   followUser,
   followers,
   following,
+  test,
 } = require("./userController");
 const route = express.Router();
 
