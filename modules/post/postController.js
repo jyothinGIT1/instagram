@@ -2,9 +2,9 @@ const postService = require("./postService");
 const { successResponse } = require("../../helper/successResponse");
 const createPost = async (req, res, next) => {
   try {
-    const token = req.user.userToken;
+    const userId = req.user.userId;
     const postData = { ...req.body, ...req.filePath };
-    const postResponse = await postService.createPost(token, postData);
+    const postResponse = await postService.createPost(userId, postData);
     return successResponse(res, (data = { response: postResponse }));
   } catch (error) {
     next(error);
@@ -12,19 +12,19 @@ const createPost = async (req, res, next) => {
 };
 const commentPost = async (req, res, next) => {
   try {
-    const token = req.user.userToken;
+    const userId = req.user.userId;
     postId = req.params.id;
     const postData = { ...req.body, postId };
-    const commentResponse = await postService.commentPost(token, postData);
-    return successResponse(res, (data = { response: commentResponse }));
+    const commentResponse = await postService.commentPost(userId, postData);
+    return successResponse(res);
   } catch (error) {
     next(error);
   }
 };
 const getPost = async (req, res, next) => {
   try {
-    const token = req.user.userToken;
-    const getPostResponse = await postService.getPost(token);
+    const userId = req.user.userId;
+    const getPostResponse = await postService.getPost(userId);
     return successResponse(res, (data = { response: getPostResponse }));
   } catch (error) {
     next(error);
@@ -32,11 +32,11 @@ const getPost = async (req, res, next) => {
 };
 const likePost = async (req, res, next) => {
   try {
-    const token = req.user.userToken;
+    const userId = req.user.userId;
     postId = req.params.id;
     const postData = { postId };
-    const likeResponse = await postService.likePost(token, postData);
-    return successResponse(res, (data = { response: likeResponse }));
+    const likeResponse = await postService.likePost(userId, postData);
+    return successResponse(res);
   } catch (error) {
     next(error);
   }

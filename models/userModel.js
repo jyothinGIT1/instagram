@@ -17,7 +17,7 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: null,
   },
-  contactNumber: {
+  mobileNumber: {
     type: Number,
     require: [true, "number not provided"],
   },
@@ -30,4 +30,5 @@ const userSchema = new mongoose.Schema({
     default: new Date(),
   },
 });
+
 module.exports = mongoose.model("user", userSchema);

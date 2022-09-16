@@ -1,12 +1,17 @@
 const multer = require("multer");
+const { verifyJWT } = require("../utils/token");
+
 const multerStorage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, "public");
   },
   filename: (req, file, cb) => {
     const ext = file.mimetype.split("/")[1];
+    let userId = verifyJWT(req.user.userToken).userId;
     req.filePath = {
-      filePath: `/public/${`user-${file.originalname}-${Date.now()}.${ext}`}`,
+      filePath: `/public/${`${userId}-${
+        file.originalname
+      }-${Date.now()}.${ext}`}`,
     };
     cb(null, `user-${file.originalname}-${Date.now()}.${ext}`);
   },

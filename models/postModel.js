@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 const postSchema = new mongoose.Schema({
-  userId: {
+  postedUserId: {
     type: String,
   },
   filePath: {
@@ -11,7 +11,7 @@ const postSchema = new mongoose.Schema({
     type: String,
     default: "",
   },
-  createdOn: {
+  postedOn: {
     type: Date,
     default: new Date(),
   },

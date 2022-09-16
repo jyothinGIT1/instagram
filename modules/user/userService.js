@@ -1,12 +1,20 @@
 const model = require("../../models");
 const { hashPassword, comparePassword } = require("../../utils/bcrypt");
-const { createJWT, verifyJWT } = require("../../utils/token");
+const { createJWT } = require("../../utils/token");
 
 const register = async (data) => {
   data.password = await hashPassword(data.password);
-  const userRegResponse = await model.userSchema.create(data);
-  // .select("name photo email contactNumber DOB"); cannot use select with create object
-  return userRegResponse;
+  const { _id, name, email, photo, mobileNumber, DOB, createdOn } =
+    await model.userSchema.create(data);
+  return {
+    userID: _id,
+    name,
+    email,
+    photo,
+    mobileNumber,
+    DOB,
+    createdOn,
+  };
 };
 
 const login = async (data) => {
@@ -30,42 +38,127 @@ const login = async (data) => {
   }
 };
 
-const followUser = async (token, data) => {
-  decodedToken = verifyJWT(token);
-  const postData = { ...decodedToken, ...data };
+const followUser = async (userId, data) => {
+  const postData = { followerId: userId, followingId: data.followingId };
   const postCommentResponse = await model.userFollowerSchema.create(postData);
-  return postCommentResponse;
+  let { followerId, followingId } = postCommentResponse._doc;
+  console.log({ followerId, followingId });
+  return 1;
 };
 
-const edit = async (token, postData) => {
-  decodedToken = verifyJWT(token);
-  const filter = { _id: decodedToken.userId };
+const edit = async (userId, postData) => {
+  const filter = { _id: userId };
   const update = postData;
   const editResponse = await model.userSchema
     .findOneAndUpdate(filter, update, { new: true })
-    .select("name photo email contactNumber DOB");
-  return editResponse;
+    .select("_id name photo email mobileNumber DOB createdOn");
+  const { _id, name, email, photo, mobileNumber, DOB, createdOn } =
+    editResponse._doc;
+  console.log({ _id, name, email, photo, mobileNumber, DOB, createdOn });
+  return 1;
 };
 
-const getUser = async (token) => {
-  decodedToken = verifyJWT(token);
+const getUser = async (userId) => {
   const userResponse = await model.userSchema
     .find({
-      _id: decodedToken.userId,
+      _id: userId,
     })
-    .select("name email contactNumber DOB photo");
+    .select("name email contactNumber DOB createdOn photo -_id");
 
-  userResponse[0]._doc["followers"] = await model.userFollowerSchema
-    .find({ followerID: decodedToken.userId })
-    .select("name -_id");
+  let count = 0;
+  try {
+    count = await model.userFollowerSchema.find({ followerId: userId }).count();
+  } finally {
+  }
+  if (count) {
+    userResponse[0]._doc["following"] = count;
+  } else {
+    userResponse[0]._doc["following"] =
+      "You are not following anyone ,start following and build network";
+  }
 
-  let followerId = await model.userFollowerSchema
-    .find({ userId: decodedToken.userId })
-    .select("followerID -_id");
-
-  userResponse[0]._doc["following"] = await model.userSchema
-    .find({ _id: followerId[0].followerID })
-    .select("name -_id");
+  try {
+    count = await model.userFollowerSchema
+      .find({ followingId: userId })
+      .count();
+  } finally {
+  }
+  if (count) {
+    userResponse[0]._doc["followers"] = count;
+  } else {
+    userResponse[0]._doc["followers"] = 0;
+  }
+  try {
+    count = await model.postSchema.find({ postedUserId: userId }).count();
+  } finally {
+  }
+  if (count) {
+    userResponse[0]._doc["Posts"] = count;
+  } else {
+    userResponse[0]._doc["Posts"] = 0;
+  }
   return userResponse;
 };
-module.exports = { register, edit, login, getUser, followUser };
+
+const followers = async (userId) => {
+  const follower = await model.userFollowerSchema
+    .find({ followingId: userId })
+    .select("followerId -_id");
+
+  let followerList = [];
+  follower.forEach((element) => {
+    followerList.push(element.followerId);
+  });
+  const response = await model.userSchema
+    .find({
+      _id: {
+        $in: followerList,
+      },
+    })
+    .select("name _id");
+  followerList = [];
+  response.forEach((element) => {
+    followerList.push({ followerId: element["_id"], name: element["name"] });
+  });
+
+  if (follower.length === 0) {
+    return 0;
+  }
+  return followerList;
+};
+
+const following = async (userId) => {
+  const followings = await model.userFollowerSchema
+    .find({ followerId: userId })
+    .select("followingId -_id");
+
+  let followingList = [];
+  followings.forEach((element) => {
+    followingList.push(element.followingId);
+  });
+  const response = await model.userSchema
+    .find({
+      _id: {
+        $in: followingList,
+      },
+    })
+    .select("name _id");
+  followingList = [];
+  response.forEach((element) => {
+    followingList.push({ followingId: element["_id"], name: element["name"] });
+  });
+
+  if (followings.length === 0) {
+    return 0;
+  }
+  return followingList;
+};
+module.exports = {
+  register,
+  edit,
+  login,
+  getUser,
+  followUser,
+  followers,
+  following,
+};

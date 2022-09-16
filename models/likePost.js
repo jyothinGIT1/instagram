@@ -1,10 +1,7 @@
 const mongoose = require("mongoose");
 
 const likePostSchema = new mongoose.Schema({
-  userId: {
-    type: String,
-  },
-  name: {
+  likedUserId: {
     type: String,
   },
   postId: {
